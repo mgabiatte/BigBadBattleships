@@ -11,7 +11,12 @@ NAVIOS = [
     ("Destroier", 1),
 ]
 
-cidades = ["Curitiba", "Pindamonhangaba", "Xique-Xique", "Londrina", "Maringá", "Ponta Grossa", "Cascavel", "São José dos Pinhais", "Foz do Iguaçu", "Colombo", "Guarapuava", "Paranaguá", "Araucária", "Toledo", "Apucarana", "Pinhais", "Campo Largo", "Almirante Tamandaré", "Umuarama", "Piraquara", "Francisco Beltrão", "Cambé", "Sarandi", "Fazenda Rio Grande", "Castro", "Paranavaí", "Telêmaco Borba", "Rolândia", "Irati", "Lapa", "Morretes", "Antonina",]
+cidades = [
+    "Curitiba", "Pindamonhangaba", "Xique-Xique", "Londrina", "Maringá", 
+    "Ponta Grossa", "Cascavel", "São José dos Pinhais", "Foz do Iguaçu", "Sorocaba", "Guarapuava", "Paranaguá", 
+    "Araucária", "Palácio do Planalto", "Apucarana", "Pinhais", "Campo Largo", "Almirante Tamandaré", "Umuarama", 
+    "Piraquara", "Francisco Beltrão", "Fazenda Rio Grande", "Paranavaí", "Rolândia", "Lapa", "Morretes"
+]
 
 def criarTabuleiro():
     tabuleiro = []
@@ -22,7 +27,6 @@ def criarTabuleiro():
         tabuleiro.append(linha)
     return tabuleiro
 
-# para nova exibição do mapa, nao estamos mais às cegas =)
 def mostrarTabuleiro(tabuleiro):
     print("   " + " ".join(str(c) for c in range(colunas)))
     for idx, linha in enumerate(tabuleiro):
@@ -30,10 +34,12 @@ def mostrarTabuleiro(tabuleiro):
 
 def obterCoordenadaValida(mensagemLinha, mensagemColuna):
     while True:
-        try:
-            linha = int(input(mensagemLinha))
-            coluna = int(input(mensagemColuna))
-
+        linhaInput = input(mensagemLinha)
+        colunaInput = input(mensagemColuna)
+        
+        if linhaInput.isdigit() and colunaInput.isdigit():
+            linha = int(linhaInput)
+            coluna = int(colunaInput)
             if 0 <= linha < linhas and 0 <= coluna < colunas:
                 return linha, coluna
             else:
@@ -41,8 +47,8 @@ def obterCoordenadaValida(mensagemLinha, mensagemColuna):
                 print(
                     f"⚠️  Coordenadas inválidas, assim vamos atingir {cidade} Senhor! \n-> Digite Linha (0 a {linhas - 1}) e Coluna (0 a {colunas - 1})."
                 )
-        except ValueError:
-            print("⚠️  Por favor, capitão, digite apenas números inteiros!")
+        else:
+            print("⚠️  Por favor, capitão, digite apenas números inteiros (0 a 9)!")
 
 def obterDirecaoValida():
     while True:
@@ -65,7 +71,6 @@ def posicionarNavioJogador(tabuleiro, navioNome, navioTamanho, indice):
                 l, c = linha, coluna + k
             else:
                 l, c = linha + k, coluna
-
             if not (0 <= l < linhas and 0 <= c < colunas):
                 print("⚠️  O navio ultrapassa os limites do mapa, Senhor!")
                 valido = False
@@ -75,7 +80,6 @@ def posicionarNavioJogador(tabuleiro, navioNome, navioTamanho, indice):
                 print("⚠️  Já existe um navio nessa região, Senhor!")
                 valido = False
                 break
-
             posicoes.append((l, c))
 
         if valido:
@@ -91,10 +95,8 @@ def posicionarNaviosJogador(tabuleiro):
     for i, (nome, tamanho) in enumerate(NAVIOS):
         posicoes = posicionarNavioJogador(tabuleiro, nome, tamanho, i)
         registroNavios.append({"nome": nome, "tamanho": tamanho, "posicoes": set(posicoes), "afundado": False})
-        # feedback de onde o navio foi posicionado
         print("\n--- SEU MAPA ATUAL ---")
         mostrarTabuleiro(tabuleiro)
-
     return registroNavios
 
 def posicionarNaviosComputador(tabuleiro):
@@ -118,11 +120,9 @@ def posicionarNaviosComputador(tabuleiro):
                     l, c = linha, coluna + k
                 else:
                     l, c = linha + k, coluna
-
                 if tabuleiro[l][c] != "~":
                     valido = False
                     break
-
                 posicoes.append((l, c))
 
             if valido:
@@ -130,7 +130,6 @@ def posicionarNaviosComputador(tabuleiro):
                     tabuleiro[l][c] = str(i)
                 registroNavios.append({"nome": nome, "tamanho": tamanho, "posicoes": set(posicoes), "afundado": False})
                 break
-
     return registroNavios
 
 def verificarAfundamento(linha, coluna, tabuleiroReal, registroNavios, tabuleiroVisivel):
@@ -151,7 +150,6 @@ def ataqueJogador(tabuleiroReal, tabuleiroVisivel, registroNaviosComputador):
         print("\n-> Nossa vez de atacar, capitão!")
         linha, coluna = obterCoordenadaValida("Linha do ataque: ", "Coluna do ataque: ")
 
-        # agora bloqueia disparos no mesmo local
         if (
             tabuleiroVisivel[linha][coluna] == "X"
             or tabuleiroVisivel[linha][coluna] == "O"
@@ -166,7 +164,7 @@ def ataqueJogador(tabuleiroReal, tabuleiroVisivel, registroNaviosComputador):
 
             afundado = verificarAfundamento(linha, coluna, tabuleiroReal, registroNaviosComputador, tabuleiroVisivel)
             if afundado:
-                print(f"⚓ AFUNDAMOS O {afundado.upper()} INIMIGO, CAPITÃO!! ATAQUE NOVAMENTE!")
+                print(f"⚓ AFUNDAMOS O {afundado.upper()} INIMIGO, CAPITÃO!! TEMOS UM ATAQUE EXTRA!")
                 return True, True
             return True, False
         else:
@@ -179,7 +177,7 @@ def ataqueComputador(tabuleiroReal, tabuleiroVisivel, registroNaviosJogador):
     while True:
         linha = random.randint(0, linhas - 1)
         coluna = random.randint(0, colunas - 1)
-        # computador agora tbm não repete tiros no mesmo lugar, oq tava acontecendo bastante
+        
         if (
             tabuleiroVisivel[linha][coluna] != "X"
             and tabuleiroVisivel[linha][coluna] != "O"
@@ -195,18 +193,19 @@ def ataqueComputador(tabuleiroReal, tabuleiroVisivel, registroNaviosJogador):
 
         afundado = verificarAfundamento(linha, coluna, tabuleiroReal, registroNaviosJogador, tabuleiroVisivel)
         if afundado:
-            print(f"⚓ O Computador afundou nosso {afundado}!! Resistam!")
-        return True
+            print(f"⚓ O Computador afundou nosso {afundado.upper()}!! O INIMIGO VAI ATACAR DE NOVO!")
+            return True, True
+        return True, False
     else:
         print("UFA! o Computador errou!")
         tabuleiroVisivel[linha][coluna] = "O"
         tabuleiroReal[linha][coluna] = "O"
-        return False
+        return False, False
 
-# ==============================================================================
+# ----------------------------------------------
 print("\n" + "#" * 45)
-print("           ⚓ BigBadBattleships ⚓          ")
-print("     Primeiro jogo AAAA de Batalha Naval      ")
+print("            ⚓ BigBadBattleships ⚓          ")
+print("       Primeiro jogo AAAA de Batalha Naval      ")
 print("#" * 45)
 
 tabuleiroJogador = criarTabuleiro()
@@ -230,6 +229,7 @@ while True:
     print("\nNavios do jogador:", contarNaviosVivos(registroNaviosJogador))
     print("Navios do computador:", contarNaviosVivos(registroNaviosComputador))
 
+    # turno player
     acertou, afundou = ataqueJogador(tabuleiroComputador, feedbackJogador, registroNaviosComputador)
     while afundou:
         if contarNaviosVivos(registroNaviosComputador) == 0:
@@ -240,13 +240,16 @@ while True:
         print("\nYES!!! VENCEMOS CAPITÃO!!!")
         break
 
-    ataqueComputador(tabuleiroJogador, feedbackComputador, registroNaviosJogador)
+    # turno compiuters
+    acertouComp, afundouComp = ataqueComputador(tabuleiroJogador, feedbackComputador, registroNaviosJogador)
+    while afundouComp:
+        if contarNaviosVivos(registroNaviosJogador) == 0:
+            break
+        acertouComp, afundouComp = ataqueComputador(tabuleiroJogador, feedbackComputador, registroNaviosJogador)
 
     if contarNaviosVivos(registroNaviosJogador) == 0:
         print("\nNÃO! COMPUTADOR VENCEU E A HUMANIDADE SUCUMBIU!")
         break
 
-print(
-    "\nCriado cabulosamente por: Matheus Gabiatti; Rafael Rautte e Matheus Mariani!"
-)
+print("\nCriado cabulosamente por: Matheus Gabiatti; Rafael Rautte e Matheus Mariani!")
 print("Obrigado por jogar nosso game!")
